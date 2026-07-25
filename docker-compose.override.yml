@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  backend:
+    environment:
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+    volumes:
+      - ./src/backend:/usr/src/app
+      - /usr/src/app/node_modules
+
+  frontend:
+    ports:
+      - "3000:8080"

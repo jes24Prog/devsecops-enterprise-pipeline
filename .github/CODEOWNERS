@@ -1,0 +1,17 @@
+# Global Repository Owners
+* @security-lead-owner
+
+# DevSecOps & Security Tools Configurations
+/.github/ @security-lead-owner @devsecops-lead
+/security/ @security-lead-owner
+/.gitleaks.toml @security-lead-owner
+/.semgrep.yml @security-lead-owner
+/sonar-project.properties @security-lead-owner
+
+# Containerization & Infrastructure
+/docker/ @devsecops-lead
+/docker-compose*.yml @devsecops-lead
+
+# Application Components
+/src/backend/ @backend-team-lead
+/src/frontend/ @frontend-team-lead

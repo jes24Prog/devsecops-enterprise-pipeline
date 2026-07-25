@@ -1,0 +1,38 @@
+{
+  "name": "devsecops-enterprise-pipeline",
+  "version": "1.0.0",
+  "description": "Enterprise-grade DevSecOps Pipeline using 100% Free Tiers and Open-Source Tools",
+  "private": true,
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --check \"**/*.{js,jsx,json,md,yml,yaml}\"",
+    "format:fix": "prettier --write \"**/*.{js,jsx,json,md,yml,yaml}\"",
+    "test": "npm run test --prefix src/backend && npm run test --prefix src/frontend",
+    "audit:deps": "npm audit --audit-level=high",
+    "security:scan": "bash scripts/run-security-scans.sh",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "healthcheck": "bash scripts/health-check.sh"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-plugin-security": "^2.1.1",
+    "prettier": "^3.2.5"
+  },
+  "keywords": [
+    "devsecops",
+    "security",
+    "docker",
+    "sonarqube",
+    "trivy",
+    "semgrep",
+    "gitleaks",
+    "github-actions",
+    "supabase",
+    "vercel"
+  ],
+  "author": "DevSecOps Team",
+  "license": "UNLICENSED"
+}

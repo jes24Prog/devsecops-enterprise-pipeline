@@ -1,0 +1,138 @@
+# =====================================================================
+# GitHub Action Workflow - DISABLED BY DEFAULT
+# This workflow will NOT run automatically on push, PR, schedule, or manual trigger.
+# To enable manual execution in the future, change "on: []" to "on: [workflow_dispatch]"
+# and remove "if: false" from jobs.
+# =====================================================================
+name: "1. Pull Request Validation Pipeline (Disabled)"
+
+on: []
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-format:
+    if: false
+    name: Code Linting & Formatting Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Workspace Dependencies
+        run: npm ci
+
+      - name: Verify Prettier Code Formatting
+        run: npm run format
+
+      - name: Run ESLint Security & Style Rules
+        run: npm run lint
+
+  unit-tests-and-build:
+    if: false
+    name: Unit Testing & Build Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Workspace Dependencies
+        run: |
+          npm ci
+          npm ci --prefix src/backend
+          npm ci --prefix src/frontend
+
+      - name: Run Backend Unit Tests
+        run: npm run test --prefix src/backend
+
+      - name: Run Frontend Unit Tests
+        run: npm run test --prefix src/frontend
+
+      - name: Verify Frontend Build Output
+        run: npm run build --prefix src/frontend
+
+  secret-scanning:
+    if: false
+    name: Gitleaks Secret & Credential Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks Secret Detector
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  sast-semgrep:
+    if: false
+    name: Semgrep SAST Security Analysis
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep Ruleset Scan
+        run: semgrep scan --config .semgrep.yml --error
+
+  trivy-fs-scan:
+    if: false
+    name: Trivy Filesystem Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Run Trivy FS Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          ignore-unfixed: true
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+
+  sonarqube-analysis:
+    if: false
+    name: SonarQube Code Quality & Security Gate
+    runs-on: ubuntu-latest
+    needs: [unit-tests-and-build]
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate Coverage Report
+        run: |
+          npm ci --prefix src/backend
+          npm run test --prefix src/backend
+
+      - name: Run SonarQube Scanner
+        uses: SonarSource/sonarqube-scan-action@v2.0.2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}

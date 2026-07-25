@@ -1,0 +1,3 @@
+# Trivy Vulnerability Exclusions with Explicit Justifications
+# Format: CVE-ID (Justification)
+# Example: CVE-2023-XXXXX # Accepted risk for dev-only dependency

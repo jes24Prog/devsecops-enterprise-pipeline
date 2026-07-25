@@ -1,0 +1,24 @@
+# =====================================================================
+# Gitleaks Configuration - Enterprise Secret Detection
+# =====================================================================
+title = "DevSecOps Pipeline Gitleaks Ruleset"
+
+[allowlist]
+description = "Global Allowlist for Sample Secrets and Test Stubs"
+paths = [
+  '''\.env\.example''',
+  '''package-lock\.json''',
+  '''node_modules'''
+]
+
+[[rules]]
+id = "supabase-anon-key"
+description = "Supabase Anon Public API Key Detection"
+regex = '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+'''
+keywords = ["supabase", "anon", "key"]
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic High-Entropy Hardcoded Secret / API Key"
+regex = '''(?i)(?:api_key|apikey|secret|token|password)\s*[:=]\s*["']([A-Za-z0-9_\-]{20,})["']'''
+keywords = ["api_key", "secret", "token", "password"]

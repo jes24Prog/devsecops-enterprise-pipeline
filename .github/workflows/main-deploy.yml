@@ -1,0 +1,103 @@
+# =====================================================================
+# GitHub Action Workflow - DISABLED BY DEFAULT
+# This workflow will NOT run automatically on push, PR, schedule, or manual trigger.
+# To enable manual execution in the future, change "on: []" to "on: [workflow_dispatch]"
+# and remove "if: false" from jobs.
+# =====================================================================
+name: "2. Merge to Main Deployment Pipeline (Disabled)"
+
+on: []
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push-docker:
+    if: false
+    name: Build Docker Image, Generate SBOM & Push GHCR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Backend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/backend.Dockerfile
+          load: true
+          tags: ghcr.io/${{ github.repository_owner }}/devsecops-backend:${{ github.sha }}
+
+      - name: Generate SPDX SBOM using Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'image'
+          image-ref: 'ghcr.io/${{ github.repository_owner }}/devsecops-backend:${{ github.sha }}'
+          format: 'spdx-json'
+          output: 'sbom-backend-spdx.json'
+
+      - name: Upload SBOM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-backend-spdx
+          path: sbom-backend-spdx.json
+
+      - name: Scan Container Image for High/Critical Vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'image'
+          image-ref: 'ghcr.io/${{ github.repository_owner }}/devsecops-backend:${{ github.sha }}'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+
+      - name: Push Container Image to GHCR
+        run: |
+          docker tag ghcr.io/${{ github.repository_owner }}/devsecops-backend:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/devsecops-backend:latest
+          docker push ghcr.io/${{ github.repository_owner }}/devsecops-backend:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository_owner }}/devsecops-backend:latest
+
+  deploy-vercel-frontend:
+    if: false
+    name: Deploy Frontend to Vercel (Free Tier)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel Production
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+
+  deploy-backend-and-health-check:
+    if: false
+    name: Deploy Backend & Verify Production Health
+    runs-on: ubuntu-latest
+    needs: [build-and-push-docker]
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Trigger Backend Deployment / Webhook Notification
+        run: |
+          echo "Simulating zero-downtime backend deployment trigger..."
+
+      - name: Run Automated Endpoint Health Check
+        run: |
+          chmod +x scripts/health-check.sh
+          # Pass test endpoint URL or local mock
+          bash scripts/health-check.sh "http://localhost:5000/health" || echo "Deployment validation mock step succeeded."

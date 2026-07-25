@@ -1,0 +1,39 @@
+# =====================================================================
+# GitHub Action Workflow - DISABLED BY DEFAULT
+# This workflow will NOT run automatically on push, PR, schedule, or manual trigger.
+# To enable manual execution in the future, change "on: []" to "on: [workflow_dispatch]"
+# and remove "if: false" from jobs.
+# =====================================================================
+name: "3. Scheduled Weekly Security Audit Pipeline (Disabled)"
+
+on: []
+
+jobs:
+  weekly-security-audit:
+    if: false
+    name: Comprehensive Security Audit & Report Generation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks Full Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy Comprehensive Vulnerability Audit
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          output: 'weekly-security-report.txt'
+
+      - name: Upload Weekly Security Audit Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-security-report
+          path: weekly-security-report.txt

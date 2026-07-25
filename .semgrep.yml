@@ -1,0 +1,27 @@
+rules:
+  - id: no-eval
+    patterns:
+      - pattern: eval(...)
+    message: "Avoid using eval() as it exposes application to remote code execution risks (OWASP A03:2021-Injection)."
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: disable-cors-wildcard
+    patterns:
+      - pattern: cors({ origin: '*' })
+    message: "Wildcard CORS origin allowlist detected. Enforce specific origins in production."
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: express-helmet-missing
+    patterns:
+      - pattern-inside: |
+          const $APP = express();
+          ...
+      - pattern-not-inside: |
+          ...
+          $APP.use(helmet(...));
+          ...
+    message: "Express app instance detected without Helmet middleware enabled."
+    severity: ERROR
+    languages: [javascript, typescript]
