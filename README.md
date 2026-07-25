@@ -12,43 +12,44 @@ A production-ready, zero-cost, enterprise-grade **DevSecOps Pipeline and Cloud S
 
 ```mermaid
 flowchart TD
-    subgraph Developer Workspace
-        DEV[Developer Commit] -->|Git Hook / Conventional Commit| GITLEAKS_LOCAL[Local Gitleaks & Semgrep Scan]
-        GITLEAKS_LOCAL -->|Push PR| GITHUB[GitHub Repository]
+    subgraph DEV_WS["Developer Workspace"]
+        DEV["Developer Commit"] -->|Git Hook / Conventional Commit| GITLEAKS_LOCAL["Local Gitleaks & Semgrep Scan"]
+        GITLEAKS_LOCAL -->|Push PR| GITHUB["GitHub Repository"]
     end
 
-    subgraph GitHub Actions CI/CD Pipelines
-        GITHUB -->|Pull Request Event| PR_PIPE[PR Validation Workflow]
+    subgraph GH_ACTIONS["GitHub Actions CI/CD Pipelines"]
+        GITHUB -->|Pull Request Event| PR_PIPE["PR Validation Workflow"]
         
-        subgraph Security & Quality Gates
-            PR_PIPE --> LINT[ESLint & Prettier Format]
-            PR_PIPE --> UNIT[Jest & Vitest Unit Tests]
-            PR_PIPE --> SECRETS[Gitleaks Secret Scan]
-            PR_PIPE --> SAST[Semgrep Static Analysis]
-            PR_PIPE --> FS_SCAN[Trivy Filesystem Vulnerability Scan]
-            PR_PIPE --> SONAR[SonarQube Quality Gate]
+        subgraph SEC_GATES["Security & Quality Gates"]
+            PR_PIPE --> LINT["ESLint & Prettier Format"]
+            PR_PIPE --> UNIT["Jest & Vitest Unit Tests"]
+            PR_PIPE --> SECRETS["Gitleaks Secret Scan"]
+            PR_PIPE --> SAST["Semgrep Static Analysis"]
+            PR_PIPE --> FS_SCAN["Trivy Filesystem Vulnerability Scan"]
+            PR_PIPE --> SONAR["SonarQube Quality Gate"]
         end
 
-        GITHUB -->|Merge to Main Event| MAIN_PIPE[Main Deployment Workflow]
-        MAIN_PIPE --> BUILD_IMG[Build Multi-Stage Docker Image]
-        BUILD_IMG --> SBOM[Generate SPDX SBOM with Trivy/Syft]
-        SBOM --> IMG_SCAN[Trivy Container Image Scan]
-        IMG_SCAN --> GHCR_PUSH[Push Image to GHCR]
+        GITHUB -->|Merge to Main Event| MAIN_PIPE["Main Deployment Workflow"]
+        MAIN_PIPE --> BUILD_IMG["Build Multi-Stage Docker Image"]
+        BUILD_IMG --> SBOM["Generate SPDX SBOM with Trivy/Syft"]
+        SBOM --> IMG_SCAN["Trivy Container Image Scan"]
+        IMG_SCAN --> GHCR_PUSH["Push Image to GHCR"]
     end
 
-    subgraph Production & Deployment
-        GHCR_PUSH -->|Trigger Backend Deployment| BACKEND_DEPLOY[Containerized Backend API]
-        MAIN_PIPE -->|Deploy Frontend| VERCEL[Vercel Free Tier Frontend]
-        BACKEND_DEPLOY -->|Database & Auth| SUPABASE[Supabase PostgreSQL & Auth]
+    subgraph PROD_DEP["Production & Deployment"]
+        GHCR_PUSH -->|Trigger Backend Deployment| BACKEND_DEPLOY["Containerized Backend API"]
+        MAIN_PIPE -->|Deploy Frontend| VERCEL["Vercel Free Tier Frontend"]
+        BACKEND_DEPLOY -->|Database & Auth| SUPABASE["Supabase PostgreSQL & Auth"]
         VERCEL -->|API Requests| BACKEND_DEPLOY
     end
 
-    subgraph Observability Stack (Self-Hosted Docker)
-        BACKEND_DEPLOY -->|Metrics /metrics| PROM[Prometheus]
-        BACKEND_DEPLOY -->|Container Logs| PROMTAIL[Promtail] --> LOKI[Loki Log Aggregator]
-        PROM --> GRAFANA[Grafana Security Dashboard]
+    subgraph OBS_STACK["Observability Stack (Self-Hosted Docker)"]
+        BACKEND_DEPLOY -->|Metrics /metrics| PROM["Prometheus"]
+        BACKEND_DEPLOY -->|Container Logs| PROMTAIL["Promtail"]
+        PROMTAIL --> LOKI["Loki Log Aggregator"]
+        PROM --> GRAFANA["Grafana Security Dashboard"]
         LOKI --> GRAFANA
-        UPTIME[Uptime Kuma] -->|Ping Health /health| BACKEND_DEPLOY
+        UPTIME["Uptime Kuma"] -->|Ping Health /health| BACKEND_DEPLOY
     end
 ```
 
